@@ -1,6 +1,31 @@
-# WTFix
+# Faultline
 
-WTFix is a local investigation workspace for failures. It keeps original diagnostic evidence, separates what records show from what you infer, compares repeat attempts, and helps you choose a narrow next test. Linux is the first supported platform.
+Faultline is local-first failure investigation. Correlate system events, trace evidence, compare reproductions, and isolate root causes. **Investigate. Trace. Understand.** Linux is the first supported platform.
+
+## What Faultline is for
+
+Faultline is a quiet workspace for figuring out what broke on your computer. It reads selected local diagnostic records, keeps the original evidence, and helps you compare reproductions without pretending that a nearby event proves the cause.
+
+The normal path is:
+
+1. Review **Recent Problems** and refresh the local journal when you want to scan it.
+2. Select related-looking events, or choose **New investigation** for a problem that was not detected automatically.
+3. Inspect the original evidence and the observations Faultline can support from it.
+4. Record a baseline and later test attempts, including what changed and what stayed constant.
+5. Review signature matches, hypotheses, the next useful test, and the **Do Not Yet** guidance.
+6. Close the investigation with an honest outcome or export a redacted Markdown report.
+
+The app does not repair the machine, run with administrator privileges, send diagnostics away, or require an AI provider. Empty or incomplete diagnostic results do not establish that the system is healthy.
+
+### Recent Problems
+
+The main screen is a compact event list. Search by problem, process, source, or device; filter by event type; select rows; and investigate them together. The selection action pre-fills a sensible investigation title and links the detected evidence for you.
+
+![Faultline Recent Problems with detected events](docs/screenshots/recent-problems-populated.png)
+
+When the local sources contain no supported records, Faultline keeps the empty state small and explicit.
+
+![Faultline Recent Problems with no detected events](docs/screenshots/recent-problems-empty.png)
 
 ## Run locally
 
@@ -12,9 +37,9 @@ npm run build
 npm start
 ```
 
-Open the loopback address printed by the launcher. The URL contains a one-time launch token; the browser exchanges it for a local, HTTP-only session cookie. Keep the terminal open while using WTFix and stop it with Ctrl+C. The app binds to `127.0.0.1` on a random port. It does not start a daemon, install a service, or need an account.
+Open the loopback address printed by the launcher. The URL contains a one-time launch token; the browser exchanges it for a local, HTTP-only session cookie. Keep the terminal open while using Faultline and stop it with Ctrl+C. The app binds to `127.0.0.1` on a random port. It does not start a daemon, install a service, or need an account.
 
-Data is stored in `~/.local/share/wtfix/wtfix.db` on Linux. Set `WTFIX_DATA_DIR` to a different private directory before starting if desired. The database contains original logs and may contain secrets. WTFix restricts its own data directory permissions, but does not encrypt the database; use appropriate disk security and avoid sharing it unintentionally.
+Data is stored in `~/.local/share/faultline/faultline.db` on Linux. Set `FAULTLINE_DATA_DIR` to a different private directory before starting if desired. The database contains original logs and may contain secrets. Faultline restricts its own data directory permissions, but does not encrypt the database; use appropriate disk security and avoid sharing it unintentionally.
 
 Run the checks with `npm test` and `npm run build`. No AI provider is needed. The provider contract and fake-provider safety tests are included; live AI adapters are deferred.
 
@@ -32,13 +57,13 @@ The app never changes system configuration, kills an application, runs with sudo
 
 ## Backup and recovery
 
-With WTFix stopped or running, create a consistent SQLite backup to a **new**, absolute filename:
+With Faultline stopped or running, create a consistent SQLite backup to a **new**, absolute filename:
 
 ```sh
-npm run backup -- /absolute/path/to/wtfix-backup.db
+npm run backup -- /absolute/path/to/faultline-backup.db
 ```
 
-Keep backups private: they contain the same sensitive evidence as the live database. To restore, stop WTFix, retain your current data directory separately, then place a verified backup at `~/.local/share/wtfix/wtfix.db` (or the directory selected with `WTFIX_DATA_DIR`) with access restricted to your user. Never copy only the live `.db` file while WAL mode is active; use the backup command.
+Keep backups private: they contain the same sensitive evidence as the live database. To restore, stop Faultline, retain your current data directory separately, then place a verified backup at `~/.local/share/faultline/faultline.db` (or the directory selected with `FAULTLINE_DATA_DIR`) with access restricted to your user. Never copy only the live `.db` file while WAL mode is active; use the backup command.
 
 ## Current boundaries
 

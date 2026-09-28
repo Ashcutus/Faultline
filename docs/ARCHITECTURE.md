@@ -1,4 +1,4 @@
-# WTFix — Phase 1 Architecture & Product Analysis
+# Faultline — Phase 1 Architecture & Product Analysis
 
 **Status:** Proposed architecture for human review. Phase 1 only.  
 **Date:** 28 September 2026.  
@@ -11,7 +11,7 @@ This document distinguishes **recommended product rules** from documented platfo
 
 ## 1. Executive Summary
 
-WTFix is technically coherent if V1 is a disciplined investigation notebook with bounded diagnostic discovery, rather than a universal root-cause detector. Its distinctive value is preserving the relationship between source material, claims, experiments, and changing assessments.
+Faultline is technically coherent if V1 is a disciplined investigation notebook with bounded diagnostic discovery, rather than a universal root-cause detector. Its distinctive value is preserving the relationship between source material, claims, experiments, and changing assessments.
 
 Recommend a **TypeScript domain core, React browser UI, one foreground Node.js local service, and SQLite**. Linux adapters run a small set of approved, structured, read-only collectors. Start with a developer-oriented Linux distribution of the application; defer a desktop wrapper until dogfooding establishes whether browser-based operation is a real obstacle.
 
@@ -102,7 +102,7 @@ Start with a 10 MiB per-import limit, 25 MiB per-collector output limit, and a 1
 
 Enable foreign keys, WAL, a bounded busy timeout, and `synchronous=FULL`. Keep write transactions short; no command execution or network request inside a transaction. Store each domain mutation and its timeline entry atomically. Back up before migrations and use SQLite's backup API or a cleanly closed database; copying a live main database file alone is insufficient in WAL mode. Keep the database on a local filesystem. [SQLite WAL](https://www.sqlite.org/wal.html), [synchronisation settings](https://sqlite.org/pragma.html#pragma_synchronous), [backup API](https://www.sqlite.org/backup.html).
 
-Use a foreground launcher, no autostart service and no daemon. Closing the browser tab does not necessarily stop Node; provide an explicit Quit action and document launcher termination. On exit, cancel only collectors started by WTFix and leave unrelated processes untouched. Bind only to literal loopback; production serves built assets from the service rather than a development server.
+Use a foreground launcher, no autostart service and no daemon. Closing the browser tab does not necessarily stop Node; provide an explicit Quit action and document launcher termination. On exit, cancel only collectors started by Faultline and leave unrelated processes untouched. Bind only to literal loopback; production serves built assets from the service rather than a development server.
 
 First distribution target: a versioned Linux x86-64 glibc release package plus documented Node LTS prerequisite. Verify the SQLite native binding on an Ubuntu LTS machine and an Arch-family machine. Do not promise all Linux distributions, ARM, musl, Flatpak, or a single portable executable in V1. A bundled runtime may follow if runtime setup is a demonstrated barrier.
 
@@ -556,7 +556,7 @@ A collector definition contains an ID/version, supported platform, trusted execu
 
 Resolve executables from trusted system locations; do not search a writable working directory or inherit an unreviewed PATH. Pass arguments directly with `spawn`/`execFile` and `shell: false`; allowlisting a command name without constraining its arguments is insufficient. Clear preload/startup variables and unrelated secret-bearing environment values. Disable pager, interactive prompts, colour, and network operations. Never invoke editors, debuggers, package managers, interpreters, or arbitrary user scripts as diagnostic collectors. Node documents the distinction between shell-spawning `exec` and direct execution; choose the latter. [Node child-process API](https://nodejs.org/api/child_process.html).
 
-Before running, show actual executable/arguments, purpose, read-only effect, output storage, and limits. Bind single-use approval to the resolved proposal digest. Revalidate it immediately before spawn; expire unused approval. On timeout/cancel, supervise and stop only the collector process owned by WTFix, never terminate an application or arbitrary PID on the user's machine. This collector lifecycle must be disclosed as part of execution impact.
+Before running, show actual executable/arguments, purpose, read-only effect, output storage, and limits. Bind single-use approval to the resolved proposal digest. Revalidate it immediately before spawn; expire unused approval. On timeout/cancel, supervise and stop only the collector process owned by Faultline, never terminate an application or arbitrary PID on the user's machine. This collector lifecycle must be disclosed as part of execution impact.
 
 Persist an execution receipt containing proposal/version, approval, start/end, exit status, completeness, stdout/stderr evidence, and error category. A command failure is still evidence about collection, not proof the investigated failure is absent. Do not auto-retry with wider permissions or altered flags.
 
@@ -606,11 +606,11 @@ The comparison supports a proposed H1 assessment of **WEAKENED**: the failure wa
 
 **V1 entry point.** Import a supplied Next.js error as E1; native macOS discovery is deferred. Extract `EADDRINUSE` and port 3000. Phrase the observation as “The process reported EADDRINUSE while attempting the supplied bind,” with the address/protocol if present. “Another process occupies port 3000” is initially an explanation to corroborate: an error report alone may not identify the owner, and the relevant bind address matters.
 
-**Collection proposal.** Recommend `lsof -nP -iTCP:3000 -sTCP:LISTEN` as a future structured macOS collector, showing purpose and read-only impact. In Linux-first V1, the user can run it independently on that machine and import its output; WTFix does not pretend to have executed a native adapter it lacks.
+**Collection proposal.** Recommend `lsof -nP -iTCP:3000 -sTCP:LISTEN` as a future structured macOS collector, showing purpose and read-only impact. In Linux-first V1, the user can run it independently on that machine and import its output; Faultline does not pretend to have executed a native adapter it lacks.
 
 **New evidence.** E2 reports a Node process listening on TCP port 3000. Parse its PID/name/address/time into O2. Compare capture time and address compatibility with the bind failure. A wildcard listener may conflict with a specific address; do not assume every listener on a port proves the exact earlier conflict. Node alone does not prove it is the same project or the user's intended dev server.
 
-**Assessment.** A contemporaneous, compatible listener strongly supports the port-conflict explanation. The deterministic next action can be to identify whether that listener is the intended server, or to try the application on an explicitly changed port as a manual controlled test. WTFix does not kill the listener. It proposes no Node reinstall or node_modules deletion because neither follows from this evidence.
+**Assessment.** A contemporaneous, compatible listener strongly supports the port-conflict explanation. The deterministic next action can be to identify whether that listener is the intended server, or to try the application on an explicitly changed port as a manual controlled test. Faultline does not kill the listener. It proposes no Node reinstall or node_modules deletion because neither follows from this evidence.
 
 **Possible closure.** A confirmed bind-conflict mechanism can be scoped narrowly if the evidence establishes it; determining why the extra server was launched remains a separate question. Alternatively, the user chooses another port and closes `WORKAROUND_FOUND` with residual uncertainty.
 
@@ -622,7 +622,7 @@ The comparison supports a proposed H1 assessment of **WEAKENED**: the failure wa
 
 Record “the crashes started after an NVIDIA update” as UserAssertion U1. If version history is later collected, add independent evidence; do not retroactively rewrite U1 as a measured fact. Hypothesis H1 is scoped to the tested driver package version and workload.
 
-A repeated crash with the same required fields strongly matches the reported pattern. Record baseline driver version, workload, run exposure, and relevant settings. A user-performed rollback is a single driver-package intervention only if other meaningful changes were checked; reboot, cleared caches, changed settings, or a different workload may introduce confounders. WTFix neither executes the rollback nor presumes it succeeded without a recorded post-change version.
+A repeated crash with the same required fields strongly matches the reported pattern. Record baseline driver version, workload, run exposure, and relevant settings. A user-performed rollback is a single driver-package intervention only if other meaningful changes were checked; reboot, cleared caches, changed settings, or a different workload may introduce confounders. Faultline neither executes the rollback nor presumes it succeeded without a recorded post-change version.
 
 A comparable post-rollback attempt without the target failure **supports** H1. It may be described as strongly supporting a version association if the previous failure was consistently triggered under the same protocol, but one short clean run cannot automatically qualify. Request another comparable, safe run on the rollback configuration before considering stronger support. Returning to the suspected bad driver could be informative, but is not required if risky.
 
@@ -671,7 +671,7 @@ Do not promote H1 to confirmed after one successful attempt. If evidence later j
 
 ### Reject for Now
 
-- Automatic repair, arbitrary shell execution, sudo/admin elevation, process termination as a repair action, or deletion/reinstallation/configuration modification by WTFix.
+- Automatic repair, arbitrary shell execution, sudo/admin elevation, process termination as a repair action, or deletion/reinstallation/configuration modification by Faultline.
 - Permanent monitoring daemon, remote agent, cloud backend, user accounts, billing, telemetry, enterprise observability, and Kubernetes.
 - Treating AI as parser, database, memory, fact authority, or an autonomous investigator with tools.
 - Fake precision, causal claims from time proximity, automatic hypothesis confirmation, and silent rewriting of historical assessments.
@@ -819,7 +819,7 @@ Phase 2 is done when all of the following hold for the agreed V1 scope:
 - Markdown export preserves uncertainty and source labels, previews the full content, and passes adversarial escaping/redaction tests.
 - The local API, collector boundary, file handling, resource bounds, backup/recovery, and deletion behaviour pass their defined tests.
 - The three scenarios are executable acceptance tests and include forbidden-conclusion assertions, not just happy paths.
-- A human has reviewed ordinary-user Linux dogfooding results and can follow “Why does WTFix think this?” from each assessment to its supporting records.
+- A human has reviewed ordinary-user Linux dogfooding results and can follow “Why does Faultline think this?” from each assessment to its supporting records.
 - The repository contains normal setup/run/test/support documentation, a chosen open-source license, and a documented report-a-security-issue route. These files are Phase 2 deliverables, not created by this analysis.
 - Deferred features are labelled honestly. A live hosted or local AI provider, native Windows/macOS collection, and a desktop wrapper are not implied by the release.
 

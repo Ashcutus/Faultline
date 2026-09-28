@@ -11,10 +11,10 @@ import { renderExport } from './export.js';
 import { compareSignatures, correlate, type Signature, type HypothesisStatus, type AttemptOutcome } from '../core/investigation.js';
 
 process.umask(0o077);
-const dataDir = process.env.WTFIX_DATA_DIR ?? join(homedir(), '.local', 'share', 'wtfix');
+const dataDir = process.env.FAULTLINE_DATA_DIR ?? join(homedir(), '.local', 'share', 'faultline');
 mkdirSync(dataDir, { recursive: true, mode: 0o700 });
 try { chmodSync(dataDir, 0o700); } catch { /* existing ACL may control access */ }
-const store = new Store(join(dataDir, 'wtfix.db'));
+const store = new Store(join(dataDir, 'faultline.db'));
 const app = Fastify({ bodyLimit: 14 * 1024 * 1024, logger: false });
 const token = randomBytes(32).toString('hex');
 const sessionToken = randomBytes(32).toString('hex');
@@ -27,14 +27,14 @@ app.addHook('onRequest', async (request, reply) => {
   if (address && host !== address) return reply.code(403).send({ error: 'Invalid Host header.' });
   const origin = request.headers.origin;
   if (origin && origin !== `http://${address}`) return reply.code(403).send({ error: 'Invalid Origin.' });
-  const sessionCookie = request.headers.cookie?.split(';').map(x => x.trim()).find(x => x.startsWith('wtfix_session='))?.slice('wtfix_session='.length);
+  const sessionCookie = request.headers.cookie?.split(';').map(x => x.trim()).find(x => x.startsWith('faultline_session='))?.slice('faultline_session='.length);
   const hasSession = sessionCookie === sessionToken;
   if (request.url === '/api/bootstrap') {
-    if (!hasSession && (!bootstrapAvailable || request.headers['x-wtfix-token'] !== token)) return reply.code(401).send({ error: 'Launch token unavailable.' });
+    if (!hasSession && (!bootstrapAvailable || request.headers['x-faultline-token'] !== token)) return reply.code(401).send({ error: 'Launch token unavailable.' });
     if (!hasSession) bootstrapAvailable = false;
     return;
   }
-  if (request.url.startsWith('/api/') && !hasSession) return reply.code(401).send({ error: 'Open WTFix from its current launch URL.' });
+  if (request.url.startsWith('/api/') && !hasSession) return reply.code(401).send({ error: 'Open Faultline from its current launch URL.' });
 });
 app.addHook('onSend', async (_request, reply, payload) => {
   reply.header('Cache-Control', 'no-store');
@@ -57,7 +57,7 @@ const envFact = z.object({ value: z.string().max(500).nullable(), source: z.enum
 const parseId = (x: unknown) => uuid.parse(x);
 
 app.post('/api/bootstrap', async (_request, reply) => {
-  reply.header('Set-Cookie', `wtfix_session=${sessionToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200`);
+  reply.header('Set-Cookie', `faultline_session=${sessionToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200`);
   return { ok: true };
 });
 app.get('/api/health', async () => ({ ok: true, mode: 'local', ai: 'optional, no provider configured' }));
@@ -192,5 +192,5 @@ if (!existsSync(dist)) throw new Error('Build the client first with npm run buil
 await app.register(fastifyStatic, { root: dist, prefix: '/' });
 await app.listen({ host: '127.0.0.1', port: 0 });
 address = `127.0.0.1:${(app.server.address() as { port: number }).port}`;
-console.log(`WTFix is running at http://${address}/#${token}`);
-console.log('Keep this terminal open. Press Ctrl+C to stop WTFix.');
+console.log(`Faultline is running at http://${address}/#${token}`);
+console.log('Keep this terminal open. Press Ctrl+C to stop Faultline.');

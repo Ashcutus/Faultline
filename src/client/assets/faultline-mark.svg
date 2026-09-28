@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">Faultline mark</title>
+  <desc id="desc">An angular warm orange fracture running through a dark field.</desc>
+  <rect width="96" height="96" rx="22" fill="#171d24"/>
+  <path d="M56 9 39 35l11 8-18 20 11 6-13 18 22-25-10-7 19-21-10-7L56 9Z" fill="#d47735"/>
+  <path d="m56 9-5 20m-2 14-6 15m-1 16-2 8" fill="none" stroke="#f3b06a" stroke-width="3" stroke-linecap="round" opacity=".82"/>
+</svg>

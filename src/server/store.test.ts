@@ -11,8 +11,8 @@ afterEach(() => { for (const s of stores.splice(0)) s.db.close(); });
 
 describe('saved investigations', () => {
   it('reopens a database with identical source bytes and backfills an older assessment format', () => {
-    const directory = mkdtempSync(join(tmpdir(), 'wtfix-store-'));
-    const path = join(directory, 'wtfix.db');
+    const directory = mkdtempSync(join(tmpdir(), 'faultline-store-'));
+    const path = join(directory, 'faultline.db');
     let store: Store | undefined;
     try {
       store = new Store(path);
@@ -104,6 +104,23 @@ describe('saved investigations', () => {
     store.resolve(incident, 'WORKAROUND_FOUND', 'SUPPORTED', 'Rollback avoided failure in one comparable run; internal cause unproven.');
     expect(store.getIncident(incident).incident.status).toBe('CLOSED');
     expect(() => store.resolve(incident, 'ROOT_CAUSE_IDENTIFIED', 'SUPPORTED', 'Not established')).toThrow();
+  });
+
+  it('builds the Next.js port-conflict scenario from error and listener evidence', () => {
+    const store = createStore();
+    const incident = store.createIncident('Next.js dev server will not start', 'The development server reports that port 3000 is already in use.', []);
+    const bind = store.importEvidence(incident, Buffer.from('Error: listen EADDRINUSE: address already in use :::3000\n'), 'next-dev stderr', 'text/plain');
+    const listener = store.importEvidence(incident, Buffer.from('COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME\nnode 412 ash 23u IPv6 12345 0t0 TCP *:3000 (LISTEN)\n'), 'lsof -nP -iTCP:3000 -sTCP:LISTEN', 'text/plain');
+    const observations = store.getIncident(incident).observations.filter(o => !o.retracted);
+    expect(bind.signature?.family).toBe('bind');
+    expect(observations.map(o => o.predicate)).toEqual(expect.arrayContaining(['bind_error_reported', 'port_named', 'listener_reported']));
+    const supported = observations.filter(o => o.evidence_id === listener.evidenceId || o.evidence_id === bind.evidenceId).map(o => o.id);
+    store.addInference(incident, 'A contemporaneous Node listener is a plausible explanation for the port conflict.', supported, 'The listener owner and intended service still need confirmation.');
+    const report = renderExport(store, incident);
+    expect(report).toContain('EADDRINUSE');
+    expect(report).toContain('listener');
+    expect(report).not.toContain('reinstall Node');
+    expect(report).not.toContain('delete node_modules');
   });
 
   it('never lets a source event import become a duplicate occurrence on refresh', () => {
