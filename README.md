@@ -23,9 +23,13 @@ The main screen is a compact event list. Search by problem, process, source, or 
 
 ![Faultline Recent Problems with detected events](docs/screenshots/recent-problems-populated.png)
 
+*The populated screenshot uses representative local fixture data.*
+
 When the local sources contain no supported records, Faultline keeps the empty state small and explicit.
 
 ![Faultline Recent Problems with no detected events](docs/screenshots/recent-problems-empty.png)
+
+*The empty view remains explicit about the limits of an empty scan.*
 
 ## Run locally
 
